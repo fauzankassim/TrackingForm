@@ -10,4 +10,4 @@ class FormTypeSerializer(serializers.ModelSerializer):
 class FormSchemaSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormSchema
-        fields = ["id", "form_type", "schema", "version"]
+        fields = ["id", "schema"]
