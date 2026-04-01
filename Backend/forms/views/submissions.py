@@ -31,6 +31,7 @@ class FormSubmissionApprovalSet(viewsets.ModelViewSet):
 
     queryset = FormSubmissionApproval.objects.all()
     serializer_class = FormSubmissionApprovalSerializer
+    http_method_names = ['post', 'get', 'head', 'options']
 
     def perform_create(self, serializer):
         serializer.save(
