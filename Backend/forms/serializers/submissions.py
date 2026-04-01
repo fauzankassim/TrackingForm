@@ -18,4 +18,5 @@ class FormSubmissionApprovalSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormSubmissionApproval
         fields = ["id", "submission", "approval_step", "approver_group", "actioned_by", "status", "actioned_at", "comments"]
+        read_only_fields = ["approver_group", "actioned_by", "status", "actioned_at"]
 
