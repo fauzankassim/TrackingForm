@@ -7,6 +7,7 @@ class FormSubmissionSet(viewsets.ModelViewSet):
 
     queryset = FormSubmission.objects.all()
     serializer_class = FormSubmissionSerializer
+    http_method_names = ['post', 'get','delete','head', 'options']
 
     def perform_create(self, serializer):
         serializer.save(
@@ -18,7 +19,8 @@ class FormSubmissionHistorySet(viewsets.ModelViewSet):
 
     queryset = FormSubmissionHistory.objects.all()
     serializer_class = FormSubmissionHistorySerializer
-
+    http_method_names = ['post', 'get', 'delete', 'head', 'options']
+    
     def perform_create(self, serializer):
         serializer.save(
             created_by=self.request.user,
@@ -29,6 +31,7 @@ class FormSubmissionApprovalSet(viewsets.ModelViewSet):
 
     queryset = FormSubmissionApproval.objects.all()
     serializer_class = FormSubmissionApprovalSerializer
+    http_method_names = ['post', 'get', 'head', 'options']
 
     def perform_create(self, serializer):
         serializer.save(
