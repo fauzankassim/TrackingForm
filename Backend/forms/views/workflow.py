@@ -32,7 +32,8 @@ class ApprovalStepSet(viewsets.ModelViewSet):
     
     queryset = ApprovalStep.objects.all()
     serializer_class = ApprovalStepSerializer
-
+    http_method_names = ['post', 'get', 'put', 'patch','delete','head', 'options']
+    
     def perform_create(self, serializer):
         serializer.save(
             created_by=self.request.user,
