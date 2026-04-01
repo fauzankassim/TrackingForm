@@ -9,6 +9,7 @@ class FormTypeSet(viewsets.ModelViewSet):
 
     queryset = FormType.objects.all()
     serializer_class = FormTypeSerializer
+    http_method_names = ['get', 'head', 'options']
 
     def perform_create(self, serializer):
         serializer.save(
