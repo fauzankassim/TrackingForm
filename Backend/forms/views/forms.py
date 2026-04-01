@@ -22,6 +22,7 @@ class FormSchemaSet(viewsets.ModelViewSet):
 
     queryset = FormSchema.objects.all()
     serializer_class = FormSchemaSerializer
+    http_method_names = ['post', 'get', 'head', 'options']
 
     def perform_create(self, serializer):
         with transaction.atomic():
