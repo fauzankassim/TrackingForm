@@ -92,7 +92,7 @@ class FormSubmissionApproval(AuditBase):
         ApprovalStep, on_delete=models.PROTECT, related_name="submission_approvals"
     )
     approver_group = models.ForeignKey(
-        Approver, on_delete=models.PROTECT, related_name="submission_approvals"
+        Approver, on_delete=models.PROTECT, related_name="submission_approvals", null=True, blank=True
     )
     actioned_by = models.ForeignKey(
         User,
