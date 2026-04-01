@@ -7,7 +7,8 @@ class ApproverSet(viewsets.ModelViewSet):
 
     queryset = Approver.objects.all()
     serializer_class = ApproverSerializer
-
+    http_method_names = ['get', 'head', 'options']
+    
     def perform_create(self, serializer):
         serializer.save(
             created_by=self.request.user,
