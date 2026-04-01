@@ -5,6 +5,7 @@ class FormSubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormSubmission
         fields = ["id", "reference_number", "form_schema", "status", "pending_action_by"]
+        read_only_fields = ["reference_number", "status", "pending_action_by"]
 
 
 class FormSubmissionHistorySerializer(serializers.ModelSerializer):
