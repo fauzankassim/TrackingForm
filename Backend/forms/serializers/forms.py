@@ -5,9 +5,12 @@ class FormTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormType
         fields = ["id", "name", "is_active"]
+        read_only_fields = ["is_active"]
 
 
 class FormSchemaSerializer(serializers.ModelSerializer):
     class Meta:
         model = FormSchema
-        fields = ["id", "schema"]
+        fields = ["id", "form_type", "schema", "version"]
+        read_only_fields = ["version"]
+        validators = []
