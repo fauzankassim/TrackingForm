@@ -12,6 +12,7 @@ class FormSubmissionHistorySerializer(serializers.ModelSerializer):
     class Meta:
         model = FormSubmissionHistory
         fields = ["id", "submission", "content", "version_number"]
+        read_only_fields = ["version_number"]
 
 class FormSubmissionApprovalSerializer(serializers.ModelSerializer):
     class Meta:
