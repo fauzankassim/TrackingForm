@@ -1,14 +1,14 @@
-from rest_framework import serializers
+from forms.serializers.audit import AuditBaseSerializer
 from forms.models.forms import FormType, FormSchema
 
-class FormTypeSerializer(serializers.ModelSerializer):
+class FormTypeSerializer(AuditBaseSerializer):
     class Meta:
         model = FormType
         fields = ["id", "name", "is_active"]
         read_only_fields = ["is_active"]
 
 
-class FormSchemaSerializer(serializers.ModelSerializer):
+class FormSchemaSerializer(AuditBaseSerializer):
     class Meta:
         model = FormSchema
         fields = ["id", "form_type", "schema", "version"]
