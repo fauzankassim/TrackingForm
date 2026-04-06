@@ -17,7 +17,8 @@ class FormSchemaSet(viewsets.ModelViewSet):
     queryset = FormSchema.objects.all()
     serializer_class = FormSchemaSerializer
     http_method_names = ['post', 'get', 'head', 'options']
-
+    lookup_field = "slug"
+    
     def perform_create(self, serializer):
         with transaction.atomic():
             form_type = serializer.validated_data.get("form_type")
