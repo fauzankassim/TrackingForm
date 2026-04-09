@@ -8,7 +8,10 @@ def enforce_csrf(request):
     """
     Enforce CSRF validation.
     """
-    check = CSRFCheck()
+    def dummy_get_response(request):
+        return None
+
+    check = CSRFCheck(dummy_get_response)
     # populates request.META['CSRF_COOKIE'], which is used in process_view()
     check.process_request(request)
     reason = check.process_view(request, None, (), {})
@@ -23,7 +26,7 @@ class CustomAuthentication(JWTAuthentication):
         header = self.get_header(request)
         
         if header is None:
-            raw_token = request.COOKIES.get(settings.SIMPLE_JWT['AUTH_COOKIE']) or None
+            raw_token = request.COOKIES.get(settings.SIMPLE_JWT['ACCESS_TOKEN_COOKIE']) or None
         else:
             raw_token = self.get_raw_token(header)
         if raw_token is None:
