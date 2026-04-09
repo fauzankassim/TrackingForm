@@ -1,2 +1,2 @@
 from .user import UserViewset
-from .login import LoginView
+from .login import LoginView, RefreshView
