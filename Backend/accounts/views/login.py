@@ -26,13 +26,25 @@ class LoginView(APIView):
         if user is not None:
             if user.is_active:
                 data = get_tokens_for_user(user)
+
                 response.set_cookie(
-                                    key = settings.SIMPLE_JWT['AUTH_COOKIE'], 
-                                    value = data["access"],
-                                    secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
-                                    httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
-                                    samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
-                                        )
+                    key = settings.SIMPLE_JWT['ACCESS_TOKEN_COOKIE'], 
+                    value = data["access"],
+                    max_age = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+                    secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                    httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                    samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+                )
+
+                response.set_cookie(
+                    key = settings.SIMPLE_JWT['REFRESH_TOKEN_COOKIE'], 
+                    value = data["refresh"],
+                    max_age = settings.SIMPLE_JWT['REFRESH_TOKEN_LIFETIME'],
+                    secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+                    httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+                    samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+                )
+
                 csrf.get_token(request)
                 response.data = {"Success" : "Login successfully","data":data}
                 
@@ -41,3 +53,26 @@ class LoginView(APIView):
                 return Response({"No active" : "This account is not active!"},status=status.HTTP_404_NOT_FOUND)
         else:
             return Response({"Invalid" : "Invalid username or password!"},status=status.HTTP_404_NOT_FOUND)
+        
+class RefreshView(APIView):
+    permission_classes=[AllowAny]
+    def post(self, request):
+        response = Response()
+        refresh_token = request.COOKIES.get(settings.SIMPLE_JWT['REFRESH_TOKEN_COOKIE'])
+        print(refresh_token)
+        if not refresh_token:
+            return Response({"detail": "No refresh token"}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        token = RefreshToken(refresh_token)
+        access_token = str(token.access_token)
+
+        response.set_cookie(
+            key = settings.SIMPLE_JWT['ACCESS_TOKEN_COOKIE'], 
+            value = access_token,
+            max_age = settings.SIMPLE_JWT['ACCESS_TOKEN_LIFETIME'],
+            secure = settings.SIMPLE_JWT['AUTH_COOKIE_SECURE'],
+            httponly = settings.SIMPLE_JWT['AUTH_COOKIE_HTTP_ONLY'],
+            samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+        )
+
+        return response
