@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from django.db.models import Max
 
@@ -10,12 +11,14 @@ class FormSubmissionSet(viewsets.ModelViewSet):
     queryset = FormSubmission.objects.all()
     serializer_class = FormSubmissionSerializer
     http_method_names = ['post', 'get','delete','head', 'options']
+    permission_classes = [IsAuthenticated]
 
 class FormSubmissionHistorySet(viewsets.ModelViewSet):
 
     queryset = FormSubmissionHistory.objects.all()
     serializer_class = FormSubmissionHistorySerializer
     http_method_names = ['post', 'get', 'delete', 'head', 'options']
+    permission_classes = [IsAuthenticated]
     
     def perform_create(self, serializer):
         with transaction.atomic():
@@ -39,3 +42,4 @@ class FormSubmissionApprovalSet(viewsets.ModelViewSet):
     queryset = FormSubmissionApproval.objects.all()
     serializer_class = FormSubmissionApprovalSerializer
     http_method_names = ['post', 'get', 'head', 'options']
+    permission_classes = [IsAuthenticated]

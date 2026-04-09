@@ -1,4 +1,5 @@
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
 from django.db.models import Max
 
@@ -10,6 +11,7 @@ class FormTypeSet(viewsets.ModelViewSet):
     queryset = FormType.objects.all()
     serializer_class = FormTypeSerializer
     http_method_names = ['post', 'get', 'head', 'options']
+    permission_classes = [IsAuthenticated]
 
 
 class FormSchemaSet(viewsets.ModelViewSet):
@@ -17,7 +19,9 @@ class FormSchemaSet(viewsets.ModelViewSet):
     queryset = FormSchema.objects.all()
     serializer_class = FormSchemaSerializer
     http_method_names = ['post', 'get', 'head', 'options']
-
+    permission_classes = [IsAuthenticated]
+    lookup_field = "slug"
+    
     def perform_create(self, serializer):
         with transaction.atomic():
             form_type = serializer.validated_data.get("form_type")
