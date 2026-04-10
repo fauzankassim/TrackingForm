@@ -1,8 +1,14 @@
 from forms.serializers.audit import AuditBaseSerializer
 from forms.models.workflow import Approver, ApprovalWorkflow, ApprovalStep
-
+from rest_framework import serializers
+from forms.models.audit import User
 
 class ApproverSerializer(AuditBaseSerializer):
+    members = serializers.SlugRelatedField(
+        many=True,
+        queryset=User.objects.all(),
+        slug_field='username'          
+    )
     class Meta:
         model = Approver
         fields = ["id", "name", "description", "members", "is_active"]
