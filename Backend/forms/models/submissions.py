@@ -24,12 +24,8 @@ class FormSubmission(AuditBase):
         choices=SubmissionStatus.choices,
         default=SubmissionStatus.DRAFT,
     )
-    pending_action_by = models.ForeignKey(
-        Approver,
-        on_delete=models.PROTECT,
-        related_name="pending_submissions",
-        null=True,
-        blank=True,
+    pending_action_by = models.ManyToManyField(
+        User, related_name="pending_approver", blank=True
     )
 
     def __str__(self):
