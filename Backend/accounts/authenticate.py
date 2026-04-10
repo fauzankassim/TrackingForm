@@ -21,7 +21,7 @@ def enforce_csrf(request):
     
 
 class CustomAuthentication(JWTAuthentication):
-    
+    CSRF_ENFORCED_PATHS = ['/api/login/']
     def authenticate(self, request):
         header = self.get_header(request)
         
@@ -33,5 +33,6 @@ class CustomAuthentication(JWTAuthentication):
             return None
 
         validated_token = self.get_validated_token(raw_token)
-        enforce_csrf(request)
+        if request.path in self.CSRF_ENFORCED_PATHS:
+            enforce_csrf(request)
         return self.get_user(validated_token), validated_token
