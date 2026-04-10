@@ -1,21 +1,44 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Max, Q
 
 from forms.serializers.submissions import FormSubmissionSerializer, FormSubmissionHistorySerializer, FormSubmissionApprovalSerializer
 from forms.models.submissions import FormSubmission, FormSubmissionHistory, FormSubmissionApproval
 from forms.models.audit import User
 from django.db import transaction
 from django.utils.timezone import now
+from rest_framework.response import Response
 
 class FormSubmissionSet(viewsets.ModelViewSet):
 
     queryset = FormSubmission.objects.all()
     serializer_class = FormSubmissionSerializer
-    http_method_names = ['post', 'get', 'put', 'delete', 'head', 'options']
+    http_method_names = ['post', 'get', 'put', 'patch', 'delete', 'head', 'options']
     permission_classes = [IsAuthenticated]
     lookup_field = "reference_number"
+
+    def get_queryset(self):
+        user = self.request.user
+        return FormSubmission.objects.filter(
+            Q(created_by=user) | Q(pending_action_by=user)
+        )
+    
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+
+        require_approval = request.query_params.get("require_approval")
+
+        if require_approval == "true":
+            queryset = queryset.filter(
+                pending_action_by=request.user,
+                status="submitted"
+            )
+        else:
+            queryset = queryset.filter(created_by=request.user)
+
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
     
     def perform_create(self, serializer):
         today_str = now().date().strftime("%Y%m%d")
@@ -44,14 +67,27 @@ class FormSubmissionSet(viewsets.ModelViewSet):
             )
 
     def perform_update(self, serializer):
-        instance = serializer.save()
+        instance = self.get_object()
+        user = self.request.user
 
+        status = self.request.data.get("status")
         names = self.request.data.get("pending_action_by")
+        is_approver = instance.pending_action_by.filter(id=user.id).exists()
 
-        if names is not None:
-            users = User.objects.filter(username__in=names)
-            instance.pending_action_by.set(users)    
-        
+        if is_approver and status in ["approved", "rejected"]:
+            serializer.save(status=status)
+
+            return 
+        if instance.created_by == user:
+            instance = serializer.save()
+
+            names = self.request.data.get("pending_action_by")
+
+            if names is not None:
+                users = User.objects.filter(username__in=names)
+                instance.pending_action_by.set(users)
+
+            return
             
 
 
