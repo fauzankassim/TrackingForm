@@ -3,12 +3,6 @@ from forms.models.submissions import FormSubmission, FormSubmissionHistory, Form
 from rest_framework import serializers
 
 class FormSubmissionSerializer(AuditBaseSerializer):
-
-    pending_action_by = serializers.PrimaryKeyRelatedField(
-        many=True,
-        read_only=True
-    )
-
     pending_action_by_names = serializers.ListField(
         write_only=True,
         required=False
@@ -16,7 +10,7 @@ class FormSubmissionSerializer(AuditBaseSerializer):
     class Meta:
         model = FormSubmission
         fields = ["id", "reference_number", "form_schema", "status", "pending_action_by", "pending_action_by_names"]
-        read_only_fields = ["reference_number"]
+        read_only_fields = ["reference_number", "pending_action_by"]
 
 
 class FormSubmissionHistorySerializer(AuditBaseSerializer): 
