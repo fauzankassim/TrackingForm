@@ -9,6 +9,8 @@ from forms.models.audit import User
 from django.db import transaction
 from django.utils.timezone import now
 from rest_framework.response import Response
+from django.db.models.functions import Substr, Cast
+from django.db.models import IntegerField
 
 class FormSubmissionSet(viewsets.ModelViewSet):
 
@@ -17,15 +19,12 @@ class FormSubmissionSet(viewsets.ModelViewSet):
     http_method_names = ['post', 'get', 'put', 'patch', 'delete', 'head', 'options']
     permission_classes = [IsAuthenticated]
     lookup_field = "reference_number"
-
-    def get_queryset(self):
-        user = self.request.user
-        return FormSubmission.objects.filter(
-            Q(created_by=user) | Q(pending_action_by=user)
-        )
     
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        user = self.request.user
+        queryset = FormSubmission.objects.filter(
+            Q(created_by=user) | Q(pending_action_by=user)
+        ).distinct()
 
         require_approval = request.query_params.get("require_approval")
 
@@ -43,22 +42,26 @@ class FormSubmissionSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         today_str = now().date().strftime("%Y%m%d")
         form_schema = serializer.validated_data.get("form_schema")
-        print(serializer.validated_data)
-        with transaction.atomic():
-            # Filter reference numbers that start with today's date
-            max_ref = FormSubmission.objects.filter(
-                reference_number__startswith=today_str
-            ).aggregate(
-                max_number=Max("reference_number")
-            )["max_number"]
 
-            if max_ref:
-                # Extract numeric part after YYYYMMDD
-                current_number = int(max_ref[len(today_str):]) + 1
+        with transaction.atomic():
+            last = (
+                FormSubmission.objects
+                .filter(reference_number__startswith=today_str)
+                .annotate(
+                    num_part=Cast(
+                        Substr("reference_number", 9),
+                        IntegerField()
+                    )
+                )
+                .order_by("-num_part")
+                .first()
+            )
+
+            if last:
+                current_number = int(last.reference_number[8:]) + 1
             else:
                 current_number = 1
 
-            # Create new reference number
             reference_number = f"{today_str}{current_number:04d}"
 
             serializer.save(
@@ -71,7 +74,7 @@ class FormSubmissionSet(viewsets.ModelViewSet):
         user = self.request.user
 
         status = self.request.data.get("status")
-        names = self.request.data.get("pending_action_by")
+
         is_approver = instance.pending_action_by.filter(id=user.id).exists()
 
         if is_approver and status in ["approved", "rejected"]:
@@ -80,9 +83,7 @@ class FormSubmissionSet(viewsets.ModelViewSet):
             return 
         if instance.created_by == user:
             instance = serializer.save()
-
-            names = self.request.data.get("pending_action_by")
-
+            names = self.request.data.pop("pending_action_by_names")
             if names is not None:
                 users = User.objects.filter(username__in=names)
                 instance.pending_action_by.set(users)
