@@ -32,12 +32,6 @@ class FormSchema(AuditBase):
     )
     schema = models.JSONField()
     version = models.PositiveIntegerField(default=1)
-    slug = models.SlugField(unique=True, blank=True)
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(f"{self.form_type.name}-v{self.version}")
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.form_type.name} v{self.version}"
