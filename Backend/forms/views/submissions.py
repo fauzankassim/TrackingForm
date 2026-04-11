@@ -11,6 +11,7 @@ from django.utils.timezone import now
 from rest_framework.response import Response
 from django.db.models.functions import Substr, Cast
 from django.db.models import IntegerField
+from forms.models.forms import FormSchema
 
 class FormSubmissionSet(viewsets.ModelViewSet):
 
@@ -47,7 +48,18 @@ class FormSubmissionSet(viewsets.ModelViewSet):
     
     def perform_create(self, serializer):
         today_str = now().date().strftime("%Y%m%d")
-        form_schema = serializer.validated_data.get("form_schema")
+        form_schema = None
+        form_type = serializer.validated_data.pop("form_type")
+
+        if form_type:
+            form_schema = (
+                FormSchema.objects
+                .filter(
+                    form_type__slug=form_type
+                )
+                .order_by("-version")
+                .first()
+            )
 
         with transaction.atomic():
             last = (
