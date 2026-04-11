@@ -10,7 +10,7 @@ class FormSubmissionSerializer(AuditBaseSerializer):
     class Meta:
         model = FormSubmission
         fields = ["id", "reference_number", "form_schema", "status", "pending_action_by", "pending_action_by_names"]
-        read_only_fields = ["reference_number", "pending_action_by"]
+        read_only_fields = ["reference_number", "pending_action_by", "form_schema"]
 
 
 class FormSubmissionHistorySerializer(AuditBaseSerializer): 
