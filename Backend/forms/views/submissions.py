@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
-from django.db.models import Max, Q
+from django.db.models import Max
 
 from forms.serializers.submissions import FormSubmissionSerializer, FormSubmissionHistorySerializer, FormSubmissionApprovalSerializer
 from forms.models.submissions import FormSubmission, FormSubmissionHistory, FormSubmissionApproval
@@ -20,23 +20,29 @@ class FormSubmissionSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     lookup_field = "reference_number"
     
-    def list(self, request, *args, **kwargs):
+    def get_queryset(self):
         user = self.request.user
-        queryset = FormSubmission.objects.filter(
-            Q(created_by=user) | Q(pending_action_by=user)
-        ).distinct()
+        queryset = FormSubmission.objects.all()
+        form_type = self.request.query_params.get("form_type")
+        require_approval = self.request.query_params.get("require_approval")
 
-        require_approval = request.query_params.get("require_approval")
-
-        if require_approval == "true":
+        if require_approval:
             queryset = queryset.filter(
-                pending_action_by=request.user,
+                pending_action_by=user,
                 status="submitted"
             )
         else:
-            queryset = queryset.filter(created_by=request.user)
-
-        serializer = self.get_serializer(queryset, many=True)
+            queryset = queryset.filter(created_by=user)
+        
+        if form_type:
+            queryset = queryset.filter(
+                form_schema__form_type__slug = form_type
+            )
+        
+        return queryset
+    
+    def list(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data)
     
     def perform_create(self, serializer):
