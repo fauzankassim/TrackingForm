@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from django.db import transaction
-from django.db.models import Max
+from django.db.models import Max, Q
 
 from forms.serializers.submissions import FormSubmissionSerializer, FormSubmissionHistorySerializer, FormSubmissionApprovalSerializer
 from forms.models.submissions import FormSubmission, FormSubmissionHistory, FormSubmissionApproval
@@ -33,7 +33,9 @@ class FormSubmissionSet(viewsets.ModelViewSet):
                 status="submitted"
             )
         else:
-            queryset = queryset.filter(created_by=user)
+            queryset = queryset.filter(
+                Q(created_by=user) | Q(pending_action_by=user)
+            ).distinct()
         
         if form_type:
             queryset = queryset.filter(
@@ -92,7 +94,6 @@ class FormSubmissionSet(viewsets.ModelViewSet):
         user = self.request.user
 
         status = self.request.data.get("status")
-
         is_approver = instance.pending_action_by.filter(id=user.id).exists()
 
         if is_approver and status in ["approved", "rejected"]:
