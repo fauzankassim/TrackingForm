@@ -76,3 +76,29 @@ class RefreshView(APIView):
         )
 
         return response
+
+class LogoutView(APIView):
+    permission_classes=[AllowAny]
+    def post(self, request):
+        response = Response()
+        refresh_token = request.COOKIES.get(settings.SIMPLE_JWT['REFRESH_TOKEN_COOKIE'])
+        print(refresh_token)
+        try:
+            if refresh_token:
+                token = RefreshToken(refresh_token)
+                token.blacklist()
+        except Exception:
+            pass
+
+        response = Response({"detail": "Logout successful"}, status=200)
+
+        response.delete_cookie(
+            key = settings.SIMPLE_JWT['ACCESS_TOKEN_COOKIE'], 
+            samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+        )
+        response.delete_cookie(
+            key = settings.SIMPLE_JWT['REFRESH_TOKEN_COOKIE'],
+            samesite = settings.SIMPLE_JWT['AUTH_COOKIE_SAMESITE']
+        )
+
+        return response
