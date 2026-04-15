@@ -11,6 +11,5 @@ class FormTypeSerializer(AuditBaseSerializer):
 class FormSchemaSerializer(AuditBaseSerializer):
     class Meta:
         model = FormSchema
-        fields = ["id", "form_type", "schema", "version"]
-        read_only_fields = ["version"]
+        fields = ["form_type", "schema"]
         validators = []
